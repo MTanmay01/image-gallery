@@ -7,55 +7,78 @@ import android.view.MenuItem
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import com.mtanmay.imagegallery.R
+import com.mtanmay.imagegallery.ViewModel
+import com.mtanmay.imagegallery.adapter.Adapter
+import com.mtanmay.imagegallery.adapter.LoadstateAdapter
+import com.mtanmay.imagegallery.api.Result
 import com.mtanmay.imagegallery.databinding.GalleryFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class GalleryFragment : Fragment(R.layout.gallery_fragment) {
+class GalleryFragment : Fragment(R.layout.gallery_fragment), Adapter.OnItemClickListener {
 
     private val viewModel by viewModels<ViewModel>()
 
     private var _binding: GalleryFragmentBinding? = null
     private val binding get() = _binding!!
 
-    private var layoutManager = GridLayoutManager(context, 1)
-    private val adapter = GalleryAdapter()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
+    private lateinit var layoutManager: GridLayoutManager
+    private val adapter = Adapter(this)
+    private var snackbar: Snackbar? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
+
 
         _binding = GalleryFragmentBinding.bind(view)
 
         binding.apply {
             recyclerView.setHasFixedSize(true)
+
+            layoutManager = GridLayoutManager(context, 1)
             recyclerView.layoutManager = layoutManager
+
             recyclerView.adapter = adapter.withLoadStateHeaderAndFooter(
                 header = LoadstateAdapter { adapter.retry() },
                 footer = LoadstateAdapter { adapter.retry() }
             )
 
             swipeRefreshLayout.setOnRefreshListener {
-                adapter.refresh()
+                loadRecentPhotos()
                 swipeRefreshLayout.isRefreshing = false
             }
         }
 
-        if (viewModel.getPhotos() == null)
+        if (binding.recyclerView.adapter?.itemCount == 0)
+            loadRecentPhotos()
+    }
+
+    private fun loadRecentPhotos() {
+        if (viewModel.getRecentPhotos() == null) {
             showResults(false)
-        else {
+            snackbar = Snackbar.make(
+                activity?.findViewById(android.R.id.content) as View,
+                "No internet connection",
+                Snackbar.LENGTH_INDEFINITE
+            )
+                .setAction("RETRY") {
+                    loadRecentPhotos()
+                }
+            snackbar?.show()
+        } else {
             showResults(true)
-            viewModel.getPhotos()?.observe(viewLifecycleOwner) { results ->
+            if (snackbar != null && snackbar!!.isShown)
+                snackbar?.dismiss()
+
+            viewModel.getRecentPhotos()?.observe(viewLifecycleOwner) { results ->
                 adapter.submitData(viewLifecycleOwner.lifecycle, results)
             }
         }
-
     }
 
     private fun showResults(show: Boolean) {
@@ -86,11 +109,17 @@ class GalleryFragment : Fragment(R.layout.gallery_fragment) {
                 item.title = "List View"
                 item.icon = resources.getDrawable(R.drawable.ic_list_view)
             }
+
             adapter.notifyItemRangeChanged(0, adapter.itemCount)
         } else if (item.itemId == R.id.refresh) {
             adapter.refresh()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onItemClick(image: Result) {
+        val action = GalleryFragmentDirections.actionGalleryToViewImage(image)
+        findNavController().navigate(action)
     }
 
     override fun onDestroyView() {

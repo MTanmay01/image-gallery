@@ -1,14 +1,14 @@
 package com.mtanmay.imagegallery.main
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.ui.*
 import com.google.android.material.navigation.NavigationView
 import com.mtanmay.imagegallery.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         setupNavDrawer()
-
     }
 
     private fun setupNavDrawer() {
@@ -35,15 +34,27 @@ class MainActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawer_layout)
         navigationView = findViewById(R.id.nav_view)
 
-        appBarConfiguration = AppBarConfiguration(navController.graph, drawerLayout)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navigationView.setupWithNavController(navController)
+        appBarConfiguration = AppBarConfiguration.Builder(
+            R.id.gallery, R.id.search
+        )
+            .setOpenableLayout(drawerLayout)
+            .build()
 
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration)
+        NavigationUI.setupWithNavController(navigationView, navController)
     }
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    override fun onBackPressed() {
+        val fragmentManager = supportFragmentManager
+        if(fragmentManager.backStackEntryCount > 0)
+            fragmentManager.popBackStack()
+        else
+            super.onBackPressed()
     }
 
 }

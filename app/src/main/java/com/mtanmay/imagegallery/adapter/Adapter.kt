@@ -1,4 +1,4 @@
-package com.mtanmay.imagegallery.ui.gallery
+package com.mtanmay.imagegallery.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -10,7 +10,9 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.mtanmay.imagegallery.api.Result
 import com.mtanmay.imagegallery.databinding.ImageItemBinding
 
-class GalleryAdapter() : PagingDataAdapter<Result, GalleryAdapter.ViewHolder>(DIFF_UTIL_CALLBACK) {
+class Adapter(
+    private val listener: OnItemClickListener
+) : PagingDataAdapter<Result, Adapter.ViewHolder>(DIFF_UTIL_CALLBACK) {
 
     companion object {
         private val DIFF_UTIL_CALLBACK = object : DiffUtil.ItemCallback<Result>() {
@@ -33,9 +35,20 @@ class GalleryAdapter() : PagingDataAdapter<Result, GalleryAdapter.ViewHolder>(DI
             holder.bind(currentItem)
     }
 
-    class ViewHolder(
+    inner class ViewHolder(
         private val binding: ImageItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.root.setOnClickListener {
+                val position = bindingAdapterPosition
+                if(position != RecyclerView.NO_POSITION) {
+                    val item = getItem(position)
+                    if(item != null)
+                        listener.onItemClick(item)
+                }
+            }
+        }
 
         fun bind(result: Result) {
 
@@ -47,6 +60,10 @@ class GalleryAdapter() : PagingDataAdapter<Result, GalleryAdapter.ViewHolder>(DI
                     .into(image)
             }
         }
+    }
+
+    interface OnItemClickListener {
+        fun onItemClick(image: Result)
     }
 
 }
