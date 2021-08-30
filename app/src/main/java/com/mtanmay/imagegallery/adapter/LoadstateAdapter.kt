@@ -1,4 +1,4 @@
-package com.mtanmay.imagegallery.ui.gallery
+package com.mtanmay.imagegallery.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

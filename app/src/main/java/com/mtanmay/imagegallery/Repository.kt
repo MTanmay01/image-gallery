@@ -1,4 +1,4 @@
-package com.mtanmay.imagegallery.ui.gallery
+package com.mtanmay.imagegallery
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -11,14 +11,25 @@ class Repository @Inject constructor(
     private val api: API
 ) {
 
-    fun getPhotos() =
+    fun getRecentPhotos() =
         Pager(
             config = PagingConfig(
                 pageSize = 20,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = {
-                PagingSource(api)
+                PagingSource(api, PagingSource.RECENT)
+            }
+        ).liveData
+
+    fun getSearchPhotos(query: String) =
+        Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {
+                PagingSource(api, PagingSource.SEARCH, query)
             }
         ).liveData
 

@@ -9,6 +9,31 @@
         android:id="@+id/gallery"
         android:name="com.mtanmay.imagegallery.ui.gallery.GalleryFragment"
         android:label="Home"
-        tools:layout="@layout/gallery_fragment" />
+        tools:layout="@layout/gallery_fragment" >
+        <action
+            android:id="@+id/action_gallery_to_viewImage"
+            app:destination="@id/viewImage"
+            app:launchSingleTop="false" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/search"
+        android:name="com.mtanmay.imagegallery.ui.search.SearchFragment"
+        android:label="Search"
+        tools:layout="@layout/search_fragment" >
+        <action
+            android:id="@+id/action_search_to_viewImage"
+            app:destination="@id/viewImage" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/viewImage"
+        android:name="com.mtanmay.imagegallery.ui.viewimage.ViewImageFragment"
+        android:label=""
+        tools:layout="@layout/view_image_fragment">
+        <argument
+            android:name="image"
+            app:argType="com.mtanmay.imagegallery.api.Result" />
+    </fragment>
 
 </navigation>
